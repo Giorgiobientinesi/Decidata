@@ -2,5 +2,5 @@ streamlit == 1.7.0
 pandas
 scikit-learn == 1.0.2
 sklearn == 0.0
-matplotlib == 3.5.1
+matplotlib
 fdpd == 1.7.2
