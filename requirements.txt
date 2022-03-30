@@ -3,4 +3,4 @@ pandas
 scikit-learn
 sklearn
 matplotlib
-fdpd
+fdpdf
