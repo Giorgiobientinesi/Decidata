@@ -41,3 +41,4 @@ class MultiApp:
     def run(self):
         app = self.apps[st.session_state.page]
         app['function']()
+        st.session_state.page_name= app["title"]
