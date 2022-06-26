@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
 from multiapp import MultiApp
-from apps import home, data, model_selection, model_execution # import your app modules here
-
+from apps import login, train_pred_selection, dataframe_selection, columns_selection, model_selection, model_execution,trained_model_selection # import your app modules here
+from utils.movements import next_page, previous_page, get_to_df_selection, get_to_var_selection,higher_priviledges_next, get_to_predict, get_to_login
+import base64
 #INITIALIZE SESSION STATE
 if "selected_var" not in st.session_state:
     st.session_state.selected_var=[]
@@ -18,34 +19,15 @@ if 'df' not in st.session_state:
     st.session_state.data = 0
 if "model_type" not in st.session_state:
     st.session_state.model_type="To_be_selected"
+if "user" not in st.session_state:
+    st.session_state.user= "User1"
+if "hash" not in st.session_state:
+    st.session_state.hash = 12345
+if "page_name" not in st.session_state:
+    st.session_state.page_name= "login"
+if "new_user_succesfully_signed_in" not in st.session_state:
+    st.session_state.new_user_succesfully_signed_in="no"
 ######################################################################
-
-#Navigating through pages
-def netx_page():
-    if st.session_state.light=="green":
-        st.session_state.page += 1
-    elif st.session_state.light=="red":
-        st.warning(st.session_state.warning)
-
-def previous_page():
-    st.session_state.page-=1 #TO BE REMOVED
-    st.session_state.model = "To_be_selected"
-    st.session_state.model_type = "To_be_selected"
-
-def get_to_df_selection():
-    st.session_state.page=0
-    st.session_state.model="To_be_selected"
-    st.session_state.model_type= "To_be_selected"
-
-def get_to_var_selection():
-    st.session_state.page = 1
-    st.session_state.model = "To_be_selected"
-    st.session_state.model_type = "To_be_selected"
-########################################################################################################################
-#Temporary variables / Uncomment if problem happens to see background
-#st.write(st.session_state.page)
-#st.write(st.session_state.light)
-########################################################################################################################
 
 #Multiapp Initialization
 
@@ -56,22 +38,22 @@ app = MultiApp()
 # This multi-page app is automatizing the creation of Churn prediction ML models
 # """)
 # Add all your application here
-app.add_app("Home", home.app)
-app.add_app("Data", data.app)
+app.add_app("Login", login.app)
+#app.add_app("Train Prediction Selection",train_pred_selection.app)
+app.add_app("Dataframe Selection",dataframe_selection.app)
+app.add_app("Columns Selection", columns_selection.app)
 app.add_app("Model Selection",model_selection.app)
 app.add_app("Model Execution", model_execution.app)
+app.add_app("Trained Model Selection", trained_model_selection.app)
 # The main app
 app.run()
 
 #Move through the pages
-if st.session_state.page < len(app.apps)-1:
-    with st.container():
-        col1, col2 = st.columns(2)
-        with col1:
-            next = st.button('Next',on_click= netx_page)
-prev = st.button("Previous", on_click=previous_page)
+if st.session_state.page_name=="Login" or st.session_state.page_name=="Train Prediction Selection":
+    pass
 
-if st.session_state.page== len(app.apps)-1:
+
+elif st.session_state.page_name=="Model Execution":
     with st.container():
         col1, col2 = st.columns(2)
         with col1:
@@ -79,5 +61,56 @@ if st.session_state.page== len(app.apps)-1:
         with col2:
             Back_to_select_var= st.button("Back to Select Variables", on_click= get_to_var_selection)
 
+else:
+    with st.container():
+        col1, col2 = st.columns(2)
+        with col1:
+            next = st.button('Next',on_click= next_page)
 
-#st.sidebar.image("Decidata-logo.jpeg")
+
+
+#st.button("Secret just-for-developers button ;)",on_click=higher_priviledges_next)
+
+if st.session_state.page_name!= "Login" and st.session_state.page_name!= "Train Prediction Selection":
+    with st.sidebar:
+        st.subheader("User:")
+        st.caption(str(st.session_state.user))
+        st.subheader("Go to Train")
+        st.button("Go", on_click=get_to_df_selection)
+        st.subheader("Go to Predict")
+        st.button("Go",on_click=get_to_predict,key=2)
+        st.subheader("Change User")
+        st.button("Go",on_click= get_to_login,key=3)
+
+        template = pd.read_excel("CAPSTONE-Template.xlsx")
+
+
+        def convert_df(df):
+            # IMPORTANT: Cache the conversion to prevent computation on every rerun
+            return df.to_csv().encode('utf-8')
+
+        template_csv = convert_df(template)
+
+        st.markdown('<h3 style="color: #5b61f9;"></h3>',
+                    unsafe_allow_html=True)
+
+        st.markdown('<h3 style="color: #5b61f9;"></h3>',
+                    unsafe_allow_html=True)
+
+
+        st.download_button(
+            "DataFrame Template ",
+            template_csv,
+            "template.csv",
+            "text/csv",
+            key='download-csv'
+        )
+
+        with open("Prediction_App-DocumentationUser.pdf", "rb") as file:
+            btn=st.download_button(
+            label="Documentation",
+            data=file,
+            file_name="Documentation.pdf",
+            mime="application/octet-stream"
+        )
+
